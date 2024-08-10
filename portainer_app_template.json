@@ -43,7 +43,7 @@
       "description": "This app deploys a LoRaWAN gateway with Basics™ Station Packet Forward protocol using Docker.",
       "post_up_info": "Please check the Github repository https://github.com/xoseperez/basicstation-docker for more information.",
       "note": "Check <a href='https://github.com/xoseperez/basicstation-docker'>LoRa Basics™ Station for Docker Github repository</a> for more details.",
-      "image": "xoseperez/basicstation-docker:latest",
+      "image": "xoseperez/basicstation-docker",
       "logo": "https://raw.githubusercontent.com/RAKWireless/portainer-templates/master/logo/gateway_logo.png",
       "name": "BasicsStation",
       "title": "LoRa Basics™ Station for Docker",
