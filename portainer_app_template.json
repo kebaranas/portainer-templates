@@ -43,7 +43,7 @@
       "description": "This app deploys a LoRaWAN gateway with Basics™ Station Packet Forward protocol using Docker.",
       "post_up_info": "Please check the Github repository https://github.com/xoseperez/basicstation-docker for more information.",
       "note": "Check <a href='https://github.com/xoseperez/basicstation-docker'>LoRa Basics™ Station for Docker Github repository</a> for more details.",
-      "image": "xoseperez/basicstation-docker",
+      "image": "xoseperez/basicstation-docker:latest",
       "logo": "https://raw.githubusercontent.com/RAKWireless/portainer-templates/master/logo/gateway_logo.png",
       "name": "BasicsStation",
       "title": "LoRa Basics™ Station for Docker",
@@ -55,23 +55,9 @@
       "privileged": true,
       "env": [
         {
-          "default": "1000",
-          "label": "PUID",
-          "name": "PUID"
-        },
-        {
-          "default": "100",
-          "label": "PGID",
-          "name": "PGID"
-        },
-        {
-          "default": "Europe/London",
-          "label": "Time Zone",
-          "name": "TZ"
-        },
-        {
-          "label": "RAK gateway model/LoRaWAN concentrator model number/Semtech LoRa chip model",
           "name": "MODEL",
+          "label": "Concentrator Model",
+          "description": "Concentrator model (see Define your MODEL section below) or AUTO. If undefined or AUTO it will trigger auto-discover.",
           "select": [
             {
               "text": "RAK7243(no LTE)",
@@ -189,18 +175,12 @@
               "text": "SX1308",
               "value": "SX1308"
             }
-          ],
-          "description": "Set RAKwireless Developer gateway model or LoRaWAN concentrator model number or Semtech LoRa chip model. When using concentrator model number or Semtech LoRa chip model, you will probably have to specify other features of the module."  
-        },
-        {
-          "default": "/dev/spidev0.0",
-          "label": "Device",
-          "name": "DEVICE",
-          "description": "Where the concentrator is connected to"
+          ]
         },
         {
           "name": "INTERFACE",
-          "label": "Concentrator interface",
+          "label": "Concentrator Interface",
+          "description": "Concentrator interface. Set to AUTO to use with auto-discover feature. If MODEL is defined it will get the interface type from it if possible, defaults to AUTO if the auto-discover feature is enabled or SPI otherwise.",
           "select": [
             {
               "text": "SPI",
@@ -209,44 +189,240 @@
             {
               "text": "USB",
               "value": "USB"
+            },
+            {
+              "text": "NET",
+              "value": "NET"
+            },
+            {
+              "text": "AUTO",
+              "value": "AUTO"
             }
-          ],
-          "description": "The interface used by the concentrator, can be guessed from Device"
+          ]
         },
         {
-          "default": "17",
-          "label": "Gateway RESET GPIO",
-          "name": "GW_RESET_GPIO",
-          "description": "GPIO number that resets"
+          "name": "DESIGN",
+          "label": "Concentrator Design",
+          "description": "Concentrator design version. A fair guess will be done based on MODEL and INTERFACE.",
+          "select": [
+            {
+              "text": "V2",
+              "value": "V2"
+            },
+            {
+              "text": "PICOCELL",
+              "value": "PICOCELL"
+            },
+            {
+              "text": "CORECELL",
+              "value": "CORECELL"
+            }
+          ]
         },
         {
+          "name": "DEVICE",
+          "label": "Concentrator Device",
+          "description": "Where the concentrator is connected to (/dev/spidev0.0 for SPI concentrators, /dev/ttyUSB0 or /dev/ttyACM0 for USB concentrators, the host IP port 3333 for NET connections). Set to AUTO for auto-discover."
+        },
+        {
+          "name": "SPI_SPEED",
+          "label": "SPI Interface Speed",
+          "description": "Speed of the SPI interface (2 MHz for SX1301 concentrators, 8 Mhz for the rest)"
+        },
+        {
+          "name": "CLKSRC",
+          "label": "Clock Radio Index",
+          "description": "Radio index that provides clock to concentrator (1 for SX1301 concentrators, 0 for the rest)",
+          "select": [
+            {
+              "text": "NON-SX1301 CONCENTRATOR",
+              "value": "0"
+            },
+            {
+              "text": "SX1301 CONCENTRATOR",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "name": "USE_LIBGPIOD",
+          "label": "GPIO Interface",
+          "description": "Use libgpiod (1) instead of default sysfs (0) to manage the GPIOs. The former is the recommended but not yet supported on all platforms.",
           "default": "0",
+          "select": [
+            {
+              "text": "SYSFS",
+              "value": "0"
+            },
+            {
+              "text": "LIBGPIOD",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "name": "GPIO_CHIP",
+          "label": "GPIO ID",
+          "description": "GPIO ID to use when using libgpiod (gpiochip0 for Non-Raspberry Pi 5, gpiochip4 for Raspberry Pi 5).",
+          "default": "gpiochip0"
+        },
+        {
+          "name": "RESET_GPIO",
+          "label": "Gateway RESET GPIO",
+          "description": "GPIO number that resets (Broadcom pin number, if not defined it's calculated based on the RESET_PIN)",
+          "default": "17"
+        },
+        {
+          "name": "POWER_EN_GPIO",
           "label": "Gateway ENABLE GPIO",
-          "name": "GW_ENABLE_GPIO",
-          "description": "GPIO number that enables power (by pulling HIGH) to the concentrator"
+          "description": "GPIO number that enables power (by pulling HIGH) to the concentrator (Broadcom pin number). 0 means no required.",
+          "default": "0"
         },
         {
-          "default": "eth0",
-          "label": "GATEWAY EUI NIC",
-          "name": "GATEWAY_EUI_NIC",
-          "description": "Interface to use when generating the EUI"
+          "name": "POWER_EN_LOGIC",
+          "label": "Gateway POWER Logic",
+          "description": "If POWER_EN_GPIO is not 0, the corresponding GPIO will be set to this value",
+          "default": "1"
         },
         {
-          "label": "GATEWAY EUI",
-          "name": "GATEWAYEUI",
-          "description": "Gateway EUI to use, autogenerated from GATEWAY EUI NIC if defined, otherwise in order from: eth0, wlan0, usb0"
+          "name": "GATEWAY_EUI",
+          "label": "Gateway EUI",
+          "description": "Gateway EUI to use. Autogenerated from GATEWAY_EUI_SOURCE if defined, otherwise in order from: eth0, wlan0, usb0"
         },
         {
-          "default": "eu1",
-          "label": "TTN REGION",
-          "name": "TTN_REGION",
-          "description": "Region of the TTN server to use, possible values: eu1, nam1, au1"
+          "name": "GATEWAY_EUI_SOURCE",
+          "label": "Gateway EUI Source",
+          "description": "Source to use when generating the EUI when GATEWAY_EUI is not defined. Set to chip for SX1302/3 chips to get the EUI from the radio chip.",
+          "default": "eth0"
+        }, 
+        {
+          "name": "TTS_REGION",
+          "label": "TTN Region",
+          "description": "Region of the TTNv3 server to use",
+          "default": "eu1"
         },
         {
-          "default": "change this to your own TC key from TTN",
-          "label": "TC KEY",
+          "name": "TTS_TENANT",
+          "label": "TTN Tenant",
+          "description": "Tenant you are using (only if using TTI)."
+        },
+        {
+          "name": "SERVER",
+          "label": "Server",
+          "description": "Host machine that hosts the LNS. Automatically created based on TTS_REGION for TTN or TTS_TENANT and TTS_REGION for TTI."
+        },
+        {
+          "name": "TLS_SNI",
+          "label": "TLS SNI",
+          "description": "Server name indication (SNI) check",
+          "default": "true",
+          "select": [
+            {
+              "text": "False",
+              "value": "false"
+            },
+            {
+              "text": "True",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "name": "TC_URI",
+          "label": "LNS URI",
+          "description": "LoRaWAN Network Server to connect to. Automatically created based on SERVER."
+        },
+        {
+          "name": "TC_TRUST",
+          "label": "LNS CA Certificate",
+          "description": "CA certificate for the server"
+        },
+        {
+          "name": "TC_CRT",
+          "label": "LNS TLS Certificate",
+          "description": "Client certificate (only if required by the server)"
+        },
+        {
           "name": "TC_KEY",
-          "description": "Unique TTN Gateway Key used for TTS Community Edition pasted from TTN console"
+          "label": "LNS TLS Key",
+          "description": "Unique gateway key or client key used to connect to the LNS"
+        },
+        {
+          "name": "USE_CUPS",
+          "label": "Use CUPS",
+          "description": "Set to True to force CUPS even without a CUPS_KEY variable or cups.key file",
+          "default": "0",
+          "select": [
+            {
+              "text": "False",
+              "value": "0"
+            },
+            {
+              "text": "True",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "name": "CUPS_URI",
+          "label": "CUPS URI",
+          "description": "CUPS Server to connect to. Automatically created based on SERVER."
+        },
+        {
+          "name": "CUPS_TRUST",
+          "label": "CUPS CA Certificate",
+          "description": "CA certificate for the CUPS server"
+        },
+        {
+          "name": "CUPS_CRT",
+          "label": "CUPS TLS Certificate",
+          "description": "Client certificate for the CUPS server (only if required by the server)"
+        },
+        {
+          "name": "CUPS_KEY",
+          "label": "CUPS TLS Key",
+          "description": "Unique gateway key or client key used to connect to the CUPS server"
+        },
+        {
+          "name": "GATEWAY_PREFIX",
+          "label": "Gateway Prefix",
+          "description": "Prefix to autogenerate GATEWAY_ID for TTS/TTI/TTN autoprovision",
+        },
+        {
+          "name": "GATEWAY_ID",
+          "label": "Gateway ID",
+          "description": "ID to use when autoprovisioning the gateway on TTS/TTI/TTN"
+        },
+        {
+          "name": "GATEWAY_NAME",
+          "label": "Gateway Name",
+          "description": "Name to use when autoprovisioning the gateway on TTS/TTI/TTN"
+        },
+        {
+          "name": "TTS_USERNAME",
+          "label": "TTN Username",
+          "description": "Name of your user on the TTS instance you want to register the gateway"
+        },
+        {
+          "name": "TTS_PERSONAL_KEY",
+          "label": "TTN Personal Key",
+          "description": "Unique key to create the gateway and its key"
+        },
+        {
+          "name": "TTS_FREQUENCY_PLAN_ID",
+          "label": "TTN Frequency Plan",
+          "description": "The Things Stack frequency plan (https://www.thethingsindustries.com/docs/reference/frequency-plans/)",
+          "default": "EU_863_870_TTN"
+        },
+        {
+          "name": "WHITELIST_NETIDS",
+          "label": "Whitelist NetIDs",
+          "description": "List of NetIDs to whitelist, filters uplinks"
+        },
+        {
+          "name": "WHITELIST_OUIS",
+          "label": "Whitelist OUIs",
+          "description": "List of OUIs to whitelist, filters join requests"
         }
       ]
     },
