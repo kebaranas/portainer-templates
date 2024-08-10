@@ -386,7 +386,7 @@
         {
           "name": "GATEWAY_PREFIX",
           "label": "Gateway Prefix",
-          "description": "Prefix to autogenerate GATEWAY_ID for TTS/TTI/TTN autoprovision",
+          "description": "Prefix to autogenerate GATEWAY_ID for TTS/TTI/TTN autoprovision"
         },
         {
           "name": "GATEWAY_ID",
